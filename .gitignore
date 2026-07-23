@@ -1,0 +1,9 @@
+node_modules/
+
+.gocache/
+
+dist/
+build/
+coverage/
+
+helpdesk-step-by-step-guide.md

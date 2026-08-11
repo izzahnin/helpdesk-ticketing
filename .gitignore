@@ -7,3 +7,7 @@ build/
 coverage/
 
 helpdesk-step-by-step-guide.md
+
+docs/REPOSITORY_FUNCTIONS_LEARNING.md
+docs/USER_REPOSITORY_LEARNING.md
+docs/go-backend-learning.md

@@ -1,0 +1,12 @@
+{
+  "name": "helpdesk-ticketing",
+  "private": true,
+  "scripts": {
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "format:go": "gofmt -w backend"
+  },
+  "devDependencies": {
+    "prettier": "^3.6.2"
+  }
+}

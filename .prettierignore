@@ -1,0 +1,11 @@
+.git
+.agents
+.vscode
+
+backend/go.sum
+backend/vendor
+
+node_modules
+dist
+build
+coverage

@@ -86,3 +86,14 @@ func (r *CategoryRepository) UpsertSLARule(ctx context.Context, rule *models.SLA
 	`, rule.CategoryID, rule.Priority, rule.ResolutionHours)
 	return err
 }
+
+func (r *CategoryRepository) ResolveSLAHours(ctx context.Context, categoryID int64, priority string) (int, error) {
+	var hours int
+	err := r.db.GetContext(ctx, &hours, `
+		SELECT COALESCE(sr.resolution_hours, c.default_sla_hours) AS resolution_hours
+		FROM categories c
+		LEFT JOIN sla_rules sr ON sr.category_id=c.id AND sr.priority=$2
+		WHERE c.id=$1
+	`, categoryID, priority)
+	return hours, err
+}

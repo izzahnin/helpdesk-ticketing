@@ -1,6 +1,13 @@
 node_modules/
 
+.env
+.env.*
+backend/.env
+backend/.env.*
+!backend/.env.example
+
 .gocache/
+backend/tmp/
 
 dist/
 build/

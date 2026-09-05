@@ -2,7 +2,9 @@ package config
 
 import (
 	"log"
+	"net/url"
 	"os"
+	"strings"
 )
 
 type Config struct {
@@ -19,7 +21,7 @@ func Load() Config {
 	cfg := Config{
 		AppEnv:             getEnv("APP_ENV", "development"),
 		Port:               getEnv("PORT", "4000"),
-		DatabaseURL:        os.Getenv("DATABASE_URL"),
+		DatabaseURL:        databaseURL(os.Getenv("DATABASE_URL"), getEnv("APP_ENV", "development")),
 		JWTAccessSecret:    os.Getenv("JWT_ACCESS_SECRET"),
 		RefreshTokenPepper: os.Getenv("REFRESH_TOKEN_PEPPER"),
 		FrontendURL:        getEnv("FRONTEND_URL", "http://localhost:3000"),
@@ -32,6 +34,41 @@ func Load() Config {
 		require("FRONTEND_URL", cfg.FrontendURL)
 	}
 	return cfg
+}
+
+func databaseURL(raw, appEnv string) string {
+	if strings.EqualFold(appEnv, "production") || raw == "" {
+		return raw
+	}
+
+	parsed, err := url.Parse(raw)
+	if err == nil && isPostgresURL(parsed) && isLocalHost(parsed.Hostname()) {
+		query := parsed.Query()
+		query.Set("sslmode", "disable")
+		parsed.RawQuery = query.Encode()
+		return parsed.String()
+	}
+
+	if isPostgresRawURL(raw) && !strings.Contains(raw, "sslmode=") {
+		separator := "?"
+		if strings.Contains(raw, "?") {
+			separator = "&"
+		}
+		return raw + separator + "sslmode=disable"
+	}
+	return raw
+}
+
+func isPostgresURL(parsed *url.URL) bool {
+	return parsed.Scheme == "postgres" || parsed.Scheme == "postgresql"
+}
+
+func isPostgresRawURL(raw string) bool {
+	return strings.HasPrefix(raw, "postgres://") || strings.HasPrefix(raw, "postgresql://")
+}
+
+func isLocalHost(host string) bool {
+	return host == "localhost" || host == "127.0.0.1" || host == "::1"
 }
 
 func getEnv(key, fallback string) string {

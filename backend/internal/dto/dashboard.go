@@ -43,9 +43,10 @@ type SLABreachResponse struct {
 }
 
 type MyPerformanceResponse struct {
-	AssignedTotal    int                     `json:"assigned_total"`
-	ResolvedTotal    int                     `json:"resolved_total"`
-	SLACompliancePct float64                 `json:"sla_compliance_pct"`
-	StatusSummary    []StatusSummaryResponse `json:"status_summary"`
-	SLABreaches      []SLABreachResponse     `json:"sla_breaches"`
+	AssignedTotal      int                     `json:"assigned_total"`
+	ResolvedTotal      int                     `json:"resolved_total"`
+	AvgResolutionHours float64                 `json:"avg_resolution_hours"`
+	SLACompliancePct   float64                 `json:"sla_compliance_pct"`
+	StatusSummary      []StatusSummaryResponse `json:"status_summary"`
+	SLABreaches        []SLABreachResponse     `json:"sla_breaches"`
 }

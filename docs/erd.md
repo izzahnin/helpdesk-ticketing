@@ -117,7 +117,7 @@ erDiagram
 - `refresh_tokens.token_hash` unik.
 - `categories.name` unik.
 - `sla_rules` unik untuk kombinasi `(category_id, priority)`.
-- `users.role` hanya boleh `admin`, `staff`, atau `end_user`.
+- `users.role` hanya boleh `super_admin`, `admin`, `staff`, atau `end_user`.
 - `tickets.priority` dan `sla_rules.priority` hanya boleh `Low`, `Medium`, `High`, atau `Critical`.
 - `tickets.status` hanya boleh `Open`, `In Progress`, `Pending`, `Resolved`, atau `Closed`.
 - `ticket_activity_log.action` hanya boleh `ticket_created`, `status_changed`, `assigned`, `reassigned`, atau `comment_added`.
@@ -190,13 +190,13 @@ Rule role dan akses:
 
 - `tickets.assignee_id` secara domain seharusnya user dengan role `staff`, tetapi database hanya mengecek bahwa ID itu ada di `users`.
 - `ticket_comments.user_id` seharusnya hanya user yang punya akses ke ticket, tetapi database hanya mengecek user ada.
-- `ticket_status_log.changed_by` seharusnya admin/staff, tetapi database hanya mengecek user ada.
+- `ticket_status_log.changed_by` seharusnya super admin/admin/staff, tetapi database hanya mengecek user ada.
 - `ticket_activity_log.actor_id` seharusnya actor yang sah untuk action tersebut.
 
 Rule workflow:
 
 - Status transition seperti `Open -> In Progress` atau `Resolved -> Closed` tidak dienforce database.
-- Permission assign/reassign hanya admin tidak dienforce database.
+- Permission assign/reassign hanya super admin/admin tidak dienforce database.
 - Permission melihat ticket berdasarkan role tidak dienforce database.
 - SLA at-risk 20% tidak disimpan sebagai constraint database.
 

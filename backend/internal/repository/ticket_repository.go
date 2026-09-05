@@ -249,7 +249,7 @@ func (r *TicketRepository) UpdateStatusWithLog(ctx context.Context, ticketID, ac
 }
 
 func EnsureTicketAccess(t *models.Ticket, userID int64, role string) error {
-	if role == "admin" {
+	if role == "admin" || role == "super_admin" {
 		return nil
 	}
 	if role == "staff" && t.AssigneeID != nil && *t.AssigneeID == userID {

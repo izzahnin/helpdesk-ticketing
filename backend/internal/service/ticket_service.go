@@ -20,7 +20,7 @@ func NewTicketService(repo *repository.TicketRepository, sla *SLAService) *Ticke
 
 func (s *TicketService) ListForUser(ctx context.Context, userID int64, role string) ([]models.Ticket, error) {
 	switch role {
-	case "admin":
+	case "admin", "super_admin":
 		return s.Repo.FindAll(ctx)
 	case "staff":
 		return s.Repo.FindByAssignee(ctx, userID)
@@ -33,6 +33,7 @@ func (s *TicketService) Submit(ctx context.Context, t *models.Ticket) error {
 	if t.Priority == "" {
 		t.Priority = "Medium"
 	}
+	t.Status = "Open"
 	deadline, _, err := s.SLA.CalculateDeadline(ctx, t.CategoryID, t.Priority, time.Now())
 	if err != nil {
 		return err

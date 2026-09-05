@@ -38,6 +38,21 @@ func (r *UserRepository) Create(ctx context.Context, u *models.User) error {
 		Scan(&u.ID, &u.CreatedAt, &u.UpdatedAt)
 }
 
+func (r *UserRepository) UpsertBootstrapSuperAdmin(ctx context.Context, u *models.User) error {
+	return r.db.QueryRowContext(ctx, `
+		INSERT INTO users (name, email, password_hash, role, is_active)
+		VALUES ($1,$2,$3,'super_admin',true)
+		ON CONFLICT (email) DO UPDATE
+		SET name=EXCLUDED.name,
+		    password_hash=EXCLUDED.password_hash,
+		    role='super_admin',
+		    is_active=true,
+		    updated_at=now()
+		RETURNING id, created_at, updated_at
+	`, u.Name, u.Email, u.PasswordHash).
+		Scan(&u.ID, &u.CreatedAt, &u.UpdatedAt)
+}
+
 func (r *UserRepository) FindByEmail(ctx context.Context, email string) (*models.User, error) {
 	var u models.User
 	query := `SELECT ` + userColumns + ` FROM users WHERE email=$1`

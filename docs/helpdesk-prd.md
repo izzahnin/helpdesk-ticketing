@@ -7,7 +7,7 @@ Dokumen ini menerjemahkan kebutuhan bisnis di `helpdesk-brd.md` menjadi kebutuha
 
 ## 1. Ringkasan Produk
 
-Aplikasi web internal untuk mengelola tiket helpdesk IT dan administratif, dengan tiga peran pengguna: `admin`, `staff`, dan `end_user`. Sistem mendukung submit dan tracking tiket, assignment staff, status workflow, komentar tiket, SLA otomatis, audit trail, dashboard analytics, dan export laporan CSV.
+Aplikasi web internal untuk mengelola tiket helpdesk IT dan administratif, dengan empat peran pengguna: `super_admin`, `admin`, `staff`, dan `end_user`. Sistem mendukung submit dan tracking tiket, assignment staff, status workflow, komentar tiket, SLA otomatis, audit trail, dashboard analytics, dan export laporan CSV.
 
 Positioning produk: project ini adalah project portofolio profesional yang ditargetkan sebagai **production-ready v1** untuk sistem internal skala kecil/menengah. Produk ini belum diposisikan sebagai enterprise-grade penuh karena belum mencakup capability enterprise seperti SSO/SAML, high availability multi-region, centralized SIEM integration, distributed tracing, compliance workflow formal, dan disaster recovery dengan RPO/RTO formal.
 
@@ -25,7 +25,7 @@ Stack produk:
 
 ### 2.1 Admin
 
-Admin merepresentasikan IT Manager/Human Capital/System Admin internal. Admin membutuhkan kontrol penuh atas user, role, kategori, SLA rules, ticket assignment, dashboard analytics, dan laporan CSV.
+Super admin adalah otoritas tertinggi sistem. Admin merepresentasikan IT Manager/Human Capital/System Admin internal. Super admin dan admin membutuhkan kontrol atas user, role, kategori, SLA rules, ticket assignment, dashboard analytics, dan laporan CSV.
 
 Kebutuhan utama:
 
@@ -81,7 +81,7 @@ Acceptance criteria:
 
 - Endpoint register publik selalu menghasilkan role `end_user`.
 - Client tidak bisa menentukan role saat register publik.
-- Role `staff` dan `admin` hanya bisa diberikan oleh admin melalui user management.
+- Role `super_admin`, `admin`, dan `staff` hanya bisa diberikan oleh super admin/admin melalui user management atau command bootstrap internal untuk akun pertama.
 
 **US-A2: Login aman dengan token pair**
 
@@ -122,7 +122,7 @@ Sebagai sistem, saya harus menolak akses endpoint yang tidak sesuai role.
 
 Acceptance criteria:
 
-- Endpoint admin-only mengembalikan `403` saat diakses staff/end-user.
+- Endpoint admin-only menerima `super_admin` dan `admin`, lalu mengembalikan `403` saat diakses staff/end-user.
 - Endpoint staff-only mengembalikan `403` saat diakses end-user.
 - Enforcement dilakukan di middleware backend, bukan hanya UI.
 
@@ -228,7 +228,7 @@ Acceptance criteria:
 - `GET /api/dashboard/staff-performance` mengembalikan jumlah tiket selesai dan rata-rata waktu penyelesaian per staff.
 - Ranking memakai SQL window function `RANK() OVER()`.
 - Endpoint mendukung query params `from`, `to`, `category_id`, dan `staff_id`.
-- Endpoint admin-only.
+- Endpoint menerima `super_admin` dan `admin`.
 
 **US-D4: Staff scoped dashboard**
 
@@ -258,7 +258,7 @@ Acceptance criteria:
 
 - `GET /api/reports/export` menghasilkan file CSV.
 - Endpoint mendukung query params `from`, `to`, `category_id`, dan `staff_id`.
-- Endpoint admin-only.
+- Endpoint menerima `super_admin` dan `admin`.
 - CSV bisa diunduh langsung dari browser.
 - Kolom minimal: `ticket_id`, `title`, `category`, `priority`, `status`, `requester`, `assignee`, `created_at`, `resolved_at`, `sla_deadline`, `sla_state`.
 
@@ -269,7 +269,7 @@ Acceptance criteria:
 | FR ID | Requirement | Terkait BRD |
 |---|---|---|
 | FR-01 | Register, login, refresh token, logout | BR-01, BR-03 |
-| FR-02 | RBAC middleware 3 role | BR-03 |
+| FR-02 | RBAC middleware 4 role | BR-03 |
 | FR-03 | CRUD/read ticket, status transition, comments | BR-01 |
 | FR-04 | Assignment/reassignment dengan audit trail | BR-01, BR-03 |
 | FR-05 | CRUD categories dan SLA rules | BR-01, BR-02 |
@@ -315,7 +315,7 @@ Acceptance criteria:
 - Data retention/legal hold policy
 - Disaster recovery dengan RPO/RTO formal
 - Load testing dan capacity planning formal
-- Dynamic permission matrix di luar 3 role utama
+- Dynamic permission matrix di luar role tetap `super_admin`, `admin`, `staff`, dan `end_user`
 
 ### 6.1 Batasan Enterprise-Grade
 
@@ -329,13 +329,13 @@ Alasan produk ini belum diklaim enterprise-grade penuh:
 - Belum ada distributed tracing dan observability stack penuh.
 - Belum ada compliance workflow formal untuk audit approval, data retention, dan legal hold.
 - Belum ada load testing formal untuk membuktikan kapasitas produksi pada skala besar.
-- Permission model masih 3 role utama, belum dynamic permission matrix granular.
+- Permission model masih memakai role tetap, belum dynamic permission matrix granular.
 
 ---
 
 ## 7. Definition of Done
 
-- Semua user story utama bisa didemokan dengan akun admin, staff, dan end-user.
+- Semua user story utama bisa didemokan dengan akun super admin, admin, staff, dan end-user.
 - Register publik selalu membuat `end_user`.
 - Login, refresh, dan logout berfungsi.
 - RBAC backend terbukti lewat test `401`, `403`, dan `200`.

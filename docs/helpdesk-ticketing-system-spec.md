@@ -58,11 +58,21 @@ Catatan ini menjaga klaim fitur tetap akurat saat implementasi dan review.
 
 | Role | Access |
 |---|---|
+| `super_admin` | Full system authority, including every admin capability |
 | `admin` | Manage users, categories, SLA rules, all tickets, assignment, full dashboard, export CSV |
 | `staff` | Assigned tickets, status update, comments, own performance dashboard |
 | `end_user` | Register, submit tickets, own tickets, comments on own tickets |
 
 Backend is the source of truth. UI role checks are UX only.
+
+Role assignment policy:
+
+| Action | Allowed actor |
+|---|---|
+| Public register creates `end_user` | Anyone |
+| Promote/demote user to `staff` or `end_user` | `super_admin`, `admin` |
+| Promote/demote user to `admin` or `super_admin` | `super_admin` only |
+| Create the first `super_admin` | Internal bootstrap command |
 
 ---
 
@@ -76,7 +86,7 @@ CREATE TABLE users (
   name TEXT NOT NULL,
   email TEXT NOT NULL UNIQUE,
   password_hash TEXT NOT NULL,
-  role TEXT NOT NULL CHECK (role IN ('admin', 'staff', 'end_user')),
+  role TEXT NOT NULL CHECK (role IN ('super_admin', 'admin', 'staff', 'end_user')),
   is_active BOOLEAN NOT NULL DEFAULT true,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
@@ -195,6 +205,7 @@ Behavior:
 - Public endpoint
 - Always creates role `end_user`
 - Ignores any role sent by client
+- First `super_admin` is created through an internal bootstrap command, not public register.
 
 `POST /api/auth/login`
 
@@ -241,9 +252,11 @@ GET   /api/users
 PATCH /api/users/:id
 ```
 
-Admin-only.
+Super admin/admin only.
 
 `PATCH /api/users/:id` updates `role` and `is_active`.
+
+Only `super_admin` can assign `admin` or `super_admin`. `admin` can assign only `staff` or `end_user`.
 
 ### 5.3 Categories & SLA Rules
 
@@ -256,7 +269,7 @@ POST   /api/sla-rules
 ```
 
 - `GET /api/categories`: authenticated users
-- Mutations: admin-only
+- Mutations: super admin/admin only
 - `POST /api/sla-rules` upserts by `(category_id, priority)`
 
 ### 5.4 Tickets
@@ -272,7 +285,7 @@ POST  /api/tickets/:id/comments
 
 Role-scoped ticket list:
 
-- Admin: all tickets
+- Super admin/admin: all tickets
 - Staff: assigned tickets
 - End-user: own tickets
 
@@ -297,14 +310,14 @@ Role-scoped ticket list:
 
 Assignment:
 
-- `PATCH /api/tickets/:id/assign` is admin-only
+- `PATCH /api/tickets/:id/assign` is super admin/admin only
 - Updates `assignee_id`
 - Inserts `ticket_activity_log` with `assigned` or `reassigned`
 - Runs in one DB transaction
 
 Status update:
 
-- Staff/admin only
+- Staff/admin/super admin only
 - Validates status transition
 - Updates ticket and inserts `ticket_status_log` in one DB transaction
 
@@ -330,7 +343,7 @@ Filter rules:
 - `from`: ISO date `YYYY-MM-DD`, filters `tickets.created_at >= from`
 - `to`: ISO date `YYYY-MM-DD`, filters `tickets.created_at < to + 1 day`
 - `category_id`: filters `tickets.category_id`
-- `staff_id`: admin endpoints only, filters `tickets.assignee_id`
+- `staff_id`: super admin/admin endpoints only, filters `tickets.assignee_id`
 - Staff endpoint ignores any client-provided staff id and scopes by JWT user id
 
 `GET /api/dashboard/my-performance` response:
@@ -354,7 +367,7 @@ GET /api/reports/export?from=&to=&category_id=&staff_id=
 
 Rules:
 
-- Admin-only
+- Super admin/admin only
 - Uses same filters as admin dashboard
 - Response headers:
   - `Content-Type: text/csv`
@@ -565,14 +578,14 @@ Integration tests:
 - Login returns token pair
 - Refresh returns new access token
 - Logout revokes refresh token
-- Admin-only endpoint rejects staff/end-user
+- Admin-only endpoint accepts super admin/admin and rejects staff/end-user
 - Staff dashboard endpoint works for staff
 - Staff cannot access admin dashboard endpoints
 - End-user cannot access dashboard endpoints
 - Ticket list is role-scoped
 - Assignment writes `ticket_activity_log`
 - Comments include author name and role
-- Export CSV admin-only
+- Export CSV super admin/admin only
 - Dashboard filters affect query result
 - Rate limit returns `429` after threshold
 - Health endpoint returns process status
@@ -597,6 +610,7 @@ Manual smoke test:
 
 Seed data minimum:
 
+- 1 super admin
 - 1 admin
 - 4 staff
 - 15 end-users
@@ -644,6 +658,6 @@ This project is production-ready v1, not full enterprise-grade. Missing enterpri
 - Formal compliance audit workflow.
 - Data retention and legal hold policy.
 - Load testing and capacity planning evidence for large-scale production traffic.
-- Granular dynamic permission matrix beyond the fixed `admin`, `staff`, `end_user` roles.
+- Granular dynamic permission matrix beyond the fixed `super_admin`, `admin`, `staff`, `end_user` roles.
 
 These are intentionally kept out of production v1 so the project remains realistic for an individual portfolio while still demonstrating production-oriented engineering practices.

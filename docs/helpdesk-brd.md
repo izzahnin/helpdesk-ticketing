@@ -44,15 +44,15 @@ Catatan positioning: project ini adalah project portofolio profesional dengan ta
 - Login dengan access token + refresh token
 - Refresh access token
 - Logout dengan revoke refresh token
-- RBAC 3 role: `admin`, `staff`, `end_user`
-- User management oleh admin
-- Category management oleh admin
-- SLA rule management oleh admin
+- RBAC 4 role: `super_admin`, `admin`, `staff`, `end_user`
+- User management oleh super admin/admin
+- Category management oleh super admin/admin
+- SLA rule management oleh super admin/admin
 - Submit tiket
 - Role-scoped ticket list
 - Ticket detail
-- Assignment/reassignment tiket oleh admin
-- Status transition oleh staff/admin
+- Assignment/reassignment tiket oleh super admin/admin
+- Status transition oleh staff/admin/super admin
 - Komentar tiket dengan author name dan author role
 - Status log untuk perubahan status
 - Activity log untuk assignment/reassignment
@@ -61,7 +61,7 @@ Catatan positioning: project ini adalah project portofolio profesional dengan ta
 - Dashboard admin dengan filter `from`, `to`, `category_id`, `staff_id`
 - Dashboard staff scoped via `/api/dashboard/my-performance`
 - SLA breach table
-- Export CSV oleh admin
+- Export CSV oleh super admin/admin
 - Seed data realistis
 - Technical documentation dan user guide
 - Production-ready security baseline
@@ -89,7 +89,7 @@ Catatan positioning: project ini adalah project portofolio profesional dengan ta
 - Data retention/legal hold policy
 - Disaster recovery dengan RPO/RTO formal
 - Load testing dan capacity planning formal
-- Role hierarchy/permission matrix dinamis di luar 3 role utama
+- Permission matrix dinamis di luar role tetap `super_admin`, `admin`, `staff`, dan `end_user`
 - Email notification SLA breach
 
 ---
@@ -98,6 +98,7 @@ Catatan positioning: project ini adalah project portofolio profesional dengan ta
 
 | Stakeholder | Kepentingan |
 |---|---|
+| Super Admin | Otoritas penuh sistem, termasuk semua kemampuan admin dan bootstrap/otoritas tertinggi |
 | Admin / IT Manager | Mengelola user, role, kategori, SLA rules, assignment, dashboard organisasi, dan export laporan |
 | Staff / Agent IT | Menangani tiket yang di-assign, update status, memberi komentar, dan melihat performa dirinya sendiri |
 | End-user / Karyawan | Submit tiket, melihat progres tiket miliknya sendiri, dan berkomunikasi lewat komentar |
@@ -215,7 +216,7 @@ Dashboard staff harus menampilkan:
 
 Export CSV:
 
-- admin-only
+- super admin/admin only
 - memakai filter yang sama dengan dashboard admin
 - bisa diunduh dari browser
 - format minimal kolom: `ticket_id`, `title`, `category`, `priority`, `status`, `requester`, `assignee`, `created_at`, `resolved_at`, `sla_deadline`, `sla_state`
@@ -237,7 +238,7 @@ Export CSV:
 Project dianggap berhasil jika:
 
 1. End-to-end flow berjalan: register/login -> submit ticket -> assign -> update status -> comment -> dashboard -> export CSV.
-2. RBAC terbukti lewat 3 akun berbeda: admin, staff, end-user.
+2. RBAC terbukti lewat 4 akun berbeda: super admin, admin, staff, end-user.
 3. Staff hanya melihat tiket dan dashboard miliknya sendiri.
 4. Admin dapat melihat dashboard organisasi dan export CSV.
 5. Refresh token, refresh endpoint, dan logout berfungsi.
